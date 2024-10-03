@@ -16,7 +16,7 @@ from starlette.concurrency import run_in_threadpool
 from app.database import SessionLocal
 from app.models import InstagramPosts, get_best_session
 
-db = SessionLocal() 
+db = SessionLocal()
 
 
 def get_or_create_insta_post(db: Session, profile_username: str, session_obj):
@@ -47,6 +47,7 @@ def get_or_create_insta_post(db: Session, profile_username: str, session_obj):
 
 class InstagramDataFetcher:
     print("start fetch_instagram_data")
+
     def __init__(self, db=db, proxy_ip="http://10.10.1.40", proxy_port="9848"):
         self.db = db
         self.session = self.session = get_best_session(self.db)

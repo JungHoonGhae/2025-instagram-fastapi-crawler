@@ -8,6 +8,7 @@ class ImageSerializer(BaseModel):
     url: str
     alt_text: str
 
+
 class JsonToObj(BaseModel):
     caption: str
     likes: int

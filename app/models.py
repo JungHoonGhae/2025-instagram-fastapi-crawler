@@ -10,7 +10,9 @@ class InstagramPosts(Base):
     __tablename__ = "insta_posts"
 
     id = Column(Integer, primary_key=True, index=True)
-    session_id = Column(Integer, ForeignKey("instagram_sessions.id", ondelete="CASCADE"), nullable=True)
+    session_id = Column(
+        Integer, ForeignKey("instagram_sessions.id", ondelete="CASCADE"), nullable=True
+    )
     json_posts = Column(JSON, nullable=True)
     profile = Column(String(250), nullable=True)
     loading_time = Column(String(250), nullable=False)
@@ -18,7 +20,6 @@ class InstagramPosts(Base):
 
     # رابطه با مدل InstagramSession
     session = relationship("InstagramSession", back_populates="posts")
-
 
     def fill_object(self, db_session, session, json_posts, *args, **kwargs):
         # پر کردن اطلاعات شیء
@@ -31,6 +32,7 @@ class InstagramPosts(Base):
         db_session.add(self)
         db_session.commit()
 
+
 def get_best_session(db: Session):
     return (
         db.query(InstagramSession)
@@ -41,9 +43,10 @@ def get_best_session(db: Session):
         .first()
     )
 
+
 class InstagramSession(Base):
     __tablename__ = "instagram_sessions"
-    
+
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String, unique=True, index=True)
     password = Column(String)
@@ -56,7 +59,7 @@ class InstagramSession(Base):
 
     # رابطه با مدل InstagramPosts
     posts = relationship("InstagramPosts", back_populates="session")
-    
+
     def increment_use(self, db: Session):
         # افزایش مقدار number_of_use به اندازه یک
         self.number_of_use += 1

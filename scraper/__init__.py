@@ -1,3 +1,2 @@
-from session import *
-
 from .posts import *
+from .session import *

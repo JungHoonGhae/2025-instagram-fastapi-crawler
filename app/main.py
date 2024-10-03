@@ -4,11 +4,12 @@ from fastapi import APIRouter, Depends, FastAPI, HTTPException, Query
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.database import SessionLocal
-from app.dependencies import get_db
-from app.models import InstagramPosts
 from scraper.posts import fetch_instagram_data
 from scraper.session import insta_create_session, save_session
+
+from .database import SessionLocal
+from .dependencies import get_db
+from .models import InstagramPosts
 
 app = FastAPI()
 

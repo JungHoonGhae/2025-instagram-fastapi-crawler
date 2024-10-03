@@ -6,7 +6,7 @@ from instagrapi import Client
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
-from models import InstagramSession
+from app.models import InstagramSession
 
 
 async def insta_create_session(data, db: AsyncSession):
@@ -26,9 +26,7 @@ async def insta_create_session(data, db: AsyncSession):
 
         try:
             # Convert session_data to JSON and then to a dictionary
-            session_data = json.loads(
-                json.dumps(session_data)
-            )
+            session_data = json.loads(json.dumps(session_data))
         except Exception as e:
             # Raise an HTTPException if serialization fails
             raise HTTPException(
@@ -92,7 +90,9 @@ async def save_session(data, db: AsyncSession):
     # Prepare a SQL query to check if an InstagramSession with the provided username already exists.
     stmt = select(InstagramSession).where(InstagramSession.username == data.username)
     result = db.execute(stmt)  # Execute the query.
-    session = result.scalars().first()  # Fetch the first result as an InstagramSession object.
+    session = (
+        result.scalars().first()
+    )  # Fetch the first result as an InstagramSession object.
 
     if session:  # If a session with the username already exists.
 

@@ -14,15 +14,16 @@ from .models import InstagramPosts
 app = FastAPI()
 
 """register models in the database"""
-from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+# from sqlalchemy import create_engine
+# from sqlalchemy.ext.declarative import declarative_base
+# from sqlalchemy.orm import sessionmaker
 
-from app.database import DATABASE_URL
+# from app.database import DATABASE_URL
 
-engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-Base = declarative_base()
+# engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+# SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+# Base = declarative_base()
+
 # Base.metadata.create_all(bind=engine)
 """////////////////////////////////"""
 
@@ -62,7 +63,7 @@ async def get_instagram_data(request: BaseProfile):
     try:
         # اجرای تابع و بازگرداندن نتیجه در صورت موفقیت
         print(request.username)
-        data = await fetch_instagram_data(request.username)
+        await fetch_instagram_data(request.username)
         return {"status": "success", "url": f"http://127.0.0.1:8000/{request.username}"}
 
     except ValueError as e:

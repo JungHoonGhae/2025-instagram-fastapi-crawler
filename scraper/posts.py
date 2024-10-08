@@ -214,14 +214,18 @@ class InstagramDataFetcher:
                             # دریافت json قدیمی
                             print(type(insta_post.json_posts))
                             existing_json_data = insta_post.json_posts or []
-                            
+
                             print(f"step 1 {existing_json_data}")
                             # اضافه کردن json جدید به داده‌های قبلی
                             existing_json_data.append(all_posts)
 
                             # به‌روزرسانی json پست
                             insta_post.json_posts = existing_json_data[-1]  # آخرین json
-                            print("/////////////////////////",insta_post,"/////////////////////////")
+                            print(
+                                "/////////////////////////",
+                                insta_post,
+                                "/////////////////////////",
+                            )
                             self.db.add(insta_post)
                             self.db.commit()
                             self.db.refresh(insta_post)  # به‌روزرسانی شیء پس از commit

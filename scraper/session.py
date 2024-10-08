@@ -17,7 +17,7 @@ async def insta_create_session(data, db: AsyncSession):
         # Log in to the account using Executor to avoid blocking
         await asyncio.get_event_loop().run_in_executor(
             None, lambda: cl.login(data.username, data.password)
-        )        
+        )
 
         # Retrieve the current session and save it
         session_data = await asyncio.get_event_loop().run_in_executor(
@@ -51,7 +51,9 @@ async def insta_create_session(data, db: AsyncSession):
         else:
             # Create a new profile entry in the database
             new_profile = InstagramSession(
-                username=data.username, password=data.password, session_data=session_data
+                username=data.username,
+                password=data.password,
+                session_data=session_data,
             )
             db.add(new_profile)
             db.commit()
@@ -70,6 +72,7 @@ async def insta_create_session(data, db: AsyncSession):
         raise HTTPException(
             status_code=400, detail={"status": "error", "message": str(e)}
         )
+
 
 async def save_session(data, db: AsyncSession):
     """
@@ -129,5 +132,3 @@ async def save_session(data, db: AsyncSession):
         except Exception as e:
             # If there is an exception, return an error message and the username.
             return {"message": str(e), "username": data.username}
-
-

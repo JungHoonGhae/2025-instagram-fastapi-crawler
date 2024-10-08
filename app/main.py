@@ -64,7 +64,7 @@ async def get_instagram_data(request: BaseProfile):
         # اجرای تابع و بازگرداندن نتیجه در صورت موفقیت
         print(request.username)
         await fetch_instagram_data(request.username)
-        return {"status": "success", "url": f"http://127.0.0.1:8000/{request.username}"}
+        return {"status": "success", "url": f"http://127.0.0.1:8000/fetch_posts/{request.username}"}
 
     except ValueError as e:
         # اگر خطایی از نوع ValueError رخ داد
@@ -77,21 +77,17 @@ async def get_instagram_data(request: BaseProfile):
         )
 
 
-def customDecoder(dict_obj):
-    # تبدیل custom json به object
-    return dict_obj
-
-
 router = APIRouter()
 
 
 @app.get("/fetch_posts/{profile_profile}")
 def get_profile(
-    profile_profile: str,
-    limit: int = Query(default=100, ge=1),  # تعداد پست‌ها در هر صفحه (پیش‌فرض 10)
-    offset: int = Query(default=0, ge=0),  # چند پست را از ابتدای لیست رد کند (پیش‌فرض 0)
-    db: SessionLocal = Depends(get_db),
-):
+        profile_profile: str,
+        limit: int = Query(default=10, ge=1),  # تعداد پست‌ها در هر صفحه (پیش‌فرض 10)
+        offset: int = Query(default=0, ge=0),  # چند پست را از ابتدای لیست رد کند (پیش‌فرض 0)
+        db: SessionLocal = Depends(get_db),
+    ):
+    print(f"Offset: {offset}, Limit: {limit}, Length of posts: {profile_profile}")
     profile = (
         db.query(InstagramPosts)
         .filter(InstagramPosts.profile == profile_profile)
@@ -103,6 +99,7 @@ def get_profile(
 
     # تبدیل json_posts به لیست پست‌ها (فرض شده json_posts یک رشته JSON است)
     posts = profile.json_posts
+    # print(posts)
     if isinstance(posts, str):
         import json
 

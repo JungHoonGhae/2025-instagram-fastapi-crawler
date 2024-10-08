@@ -61,9 +61,13 @@ class InstagramSession(Base):
     posts = relationship("InstagramPosts", back_populates="session")
 
     def increment_use(self, db: Session):
-        # افزایش مقدار number_of_use به اندازه یک
-        self.number_of_use += 1
-        # ذخیره تغییرات در دیتابیس
-        db.add(self)
-        db.commit()
-        db.refresh(self)
+        try:
+            # افزایش مقدار number_of_use به اندازه یک
+            self.number_of_use += 1
+            # ذخیره تغییرات در دیتابیس
+            db.add(self)
+            db.commit()
+            db.refresh(self)
+        except Exception as e:
+            db.rollback()  # در صورت وقوع خطا، تراکنش را به حالت قبل برگردانید
+            raise e  # خطا را مجدداً برانگیزید تا در بخش‌های دیگر مدیریت شود

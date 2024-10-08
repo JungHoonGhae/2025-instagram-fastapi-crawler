@@ -17,7 +17,7 @@ async def insta_create_session(data, db: AsyncSession):
         # Log in to the account using Executor to avoid blocking
         await asyncio.get_event_loop().run_in_executor(
             None, lambda: cl.login(data.username, data.password)
-        )
+        )        
 
         # Retrieve the current session and save it
         session_data = await asyncio.get_event_loop().run_in_executor(
@@ -34,16 +34,7 @@ async def insta_create_session(data, db: AsyncSession):
             )
 
         # Save settings to a JSON file
-        settings = await asyncio.get_event_loop().run_in_executor(
-            None, lambda: cl.dump_settings(f"{data.username}.json")
-        )
         print("Session OK")
-
-        # Create a new instance of the InstagramSession model
-        db_session = InstagramSession(
-            username=data.username, password=data.password, session_data=session_data
-        )
-        print("step3", db_session)
 
         # Check if a profile already exists for the user
         profile = (
@@ -51,29 +42,34 @@ async def insta_create_session(data, db: AsyncSession):
             .filter(InstagramSession.username == data.username)
             .first()
         )
-        if profile:
-            pass  # Handle existing profile if needed
 
-        # Create a new profile entry in the database
-        new_profile = InstagramSession(
-            username=data.username, password=data.password, session_data=session_data
-        )
-        db.add(new_profile)
-        db.commit()
-        db.refresh(new_profile)
+        if profile:
+            # Update the existing profile with the new session data
+            profile.password = data.password  # Update password if needed
+            profile.session_data = session_data
+            print(f"Profile {data.username} updated with new session data.")
+        else:
+            # Create a new profile entry in the database
+            new_profile = InstagramSession(
+                username=data.username, password=data.password, session_data=session_data
+            )
+            db.add(new_profile)
+            db.commit()
+            db.refresh(new_profile)
+            profile = new_profile
 
         return {
-            "new_profile": new_profile,
+            "profile": profile,
             "status": "success",
-            "message": "Session created and saved successfully!",
+            "message": "Session created/updated and saved successfully!",
             "session_data": session_data,
         }
+
     except Exception as e:
         # Raise an HTTPException for any other errors
         raise HTTPException(
             status_code=400, detail={"status": "error", "message": str(e)}
         )
-
 
 async def save_session(data, db: AsyncSession):
     """
@@ -97,8 +93,6 @@ async def save_session(data, db: AsyncSession):
     if session:  # If a session with the username already exists.
 
         try:
-            print(session)  # Print the session for debugging purposes.
-
             # Update the existing session's data.
             session.session_data = data.session_data
             db.add(session)  # Add the updated session to the database.
@@ -135,3 +129,5 @@ async def save_session(data, db: AsyncSession):
         except Exception as e:
             # If there is an exception, return an error message and the username.
             return {"message": str(e), "username": data.username}
+
+

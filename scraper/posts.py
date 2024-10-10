@@ -47,7 +47,7 @@ def get_or_create_insta_post(db: Session, profile_username: str, session_obj):
 class InstagramDataFetcher:
     print("start fetch_instagram_data")
 
-    def __init__(self, db=db, proxy_ip="http://172.17.0.1", proxy_port="9300"):
+    def __init__(self, db=db, proxy_ip="http://170.64.207.199", proxy_port="22"):
         self.db = db
         self.session = self.session = get_best_session(self.db)
         if not self.session:

@@ -12,8 +12,8 @@ from app.models import InstagramSession
 async def insta_create_session(data, db: AsyncSession):
     # Create a new client instance
     cl = Client()
-    proxy_ip="http://172.17.0.1"
-    proxy_port="9300"
+    proxy_ip="http://170.64.207.199"
+    proxy_port="22"
     set_proxy = f"{proxy_ip}:{proxy_port}"
     # cl.set_proxy(set_proxy)
 

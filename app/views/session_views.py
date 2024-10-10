@@ -21,6 +21,7 @@ class LoginRequest(BaseModel):
 
 @router.post("/init-session/")
 async def initialize_session(data: LoginRequest, db: AsyncSession = Depends(get_db)):
+    print("start initialize_session")
     return await insta_create_session(data, db)
 
 

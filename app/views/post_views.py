@@ -76,7 +76,7 @@ async def get_instagram_data(request: BaseProfile):
         await fetch_instagram_data(request.username)
         return {
             "status": "success",
-            "url": f"http://127.0.0.1:8000/fetch_posts/{request.username}",
+            "url": f"http://127.0.0.1:8000/posts/{request.username}",
         }
 
     except ValueError as e:

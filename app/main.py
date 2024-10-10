@@ -11,8 +11,9 @@ app.include_router(post_views.router)
 
 
 """
-"""
+# Create a detabase
 Base.metadata.create_all(bind=engine)
+"""
 
 
 @app.get("/")

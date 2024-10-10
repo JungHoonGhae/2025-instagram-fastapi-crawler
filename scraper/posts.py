@@ -53,10 +53,10 @@ class InstagramDataFetcher:
         if not self.session:
             raise ValueError("No available session found")
 
-        # self.set_proxy = f"{proxy_ip}:{proxy_port}"
+        self.set_proxy = f"{proxy_ip}:{proxy_port}"
 
         self.client = Client()
-        # self.client.set_proxy(self.set_proxy)
+        self.client.set_proxy(self.set_proxy)
         self.client.set_settings(self.session.session_data)
         self.client.delay_range = [1, 50]
         self.logged_in = False

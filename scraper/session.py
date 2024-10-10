@@ -15,7 +15,7 @@ async def insta_create_session(data, db: AsyncSession):
     proxy_ip="http://170.64.207.199"
     proxy_port="22"
     set_proxy = f"{proxy_ip}:{proxy_port}"
-    # cl.set_proxy(set_proxy)
+    cl.set_proxy(set_proxy)
 
     try:
         # Log in to the account using Executor to avoid blocking

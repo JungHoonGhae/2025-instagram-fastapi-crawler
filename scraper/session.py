@@ -13,8 +13,8 @@ async def insta_create_session(data, db: AsyncSession):
     # Create a new client instance
     cl = Client()
     proxy_ip="http://170.64.207.199"
-    proxy_port="22"
-    # set_proxy = f"{proxy_ip}:{proxy_port}"
+    proxy_port="3128"
+    set_proxy = f"{proxy_ip}:{proxy_port}"
     
     cl.set_proxy(proxy_ip)
 

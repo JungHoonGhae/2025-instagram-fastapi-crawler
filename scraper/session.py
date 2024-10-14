@@ -13,10 +13,10 @@ async def insta_create_session(data, db: AsyncSession):
     # Create a new client instance
     cl = Client()
     proxy_ip="http://170.64.207.199"
-    proxy_port="22"
+    # proxy_port="22"
     # set_proxy = f"{proxy_ip}:{proxy_port}"
     
-    cl.set_proxy(proxy_ip)
+    # cl.set_proxy(proxy_ip)
 
     try:
         # Log in to the account using Executor to avoid blocking
@@ -52,6 +52,7 @@ async def insta_create_session(data, db: AsyncSession):
             # Update the existing profile with the new session data
             profile.password = data.password  # Update password if needed
             profile.session_data = session_data
+            db.commit()
             print(f"Profile {data.username} updated with new session data.")
         else:
             # Create a new profile entry in the database

@@ -56,7 +56,7 @@ class InstagramDataFetcher:
         # self.set_proxy = f"{proxy_ip}:{proxy_port}"
 
         self.client = Client()
-        self.client.set_proxy(proxy_ip)
+        # self.client.set_proxy(proxy_ip)
         self.client.set_settings(self.session.session_data)
         self.client.delay_range = [1, 50]
         self.logged_in = False
@@ -94,7 +94,7 @@ class InstagramDataFetcher:
 
             # If We Hit The Challenge
             elif isinstance(e, ChallengeRequired):
-                print("ChallengeRequired")
+                print("ChallengeRequired-----isinstance")
                 try:
                     self.client.challenge_resolve(self.client.last_json)
                 except ChallengeRequired as e:
@@ -113,7 +113,7 @@ class InstagramDataFetcher:
 
             # If We Need To Send Feed Back
             elif isinstance(e, FeedbackRequired):
-                print("FeedbackRequired")
+                print("FeedbackRequired----isinstance")
 
                 message = self.client.last_json["feedback_message"]
                 if "This action was blocked. Please try again later" in message:

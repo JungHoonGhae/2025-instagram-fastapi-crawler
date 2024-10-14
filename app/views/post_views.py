@@ -74,10 +74,7 @@ async def get_instagram_data(request: BaseProfile):
         # اجرای تابع و بازگرداندن نتیجه در صورت موفقیت
         print(request.username)
         await fetch_instagram_data(request.username)
-        return {
-            "status": "success",
-            "url": f"http://127.0.0.1:8000/posts/{request.username}",
-        }
+    
 
     except ValueError as e:
         # اگر خطایی از نوع ValueError رخ داد
@@ -88,3 +85,7 @@ async def get_instagram_data(request: BaseProfile):
         raise HTTPException(
             status_code=500, detail=f"An unexpected error occurred: {str(e)}"
         )
+    return {
+        "status": "success",
+        "url": f"http://127.0.0.1:8000/posts/{request.username}",
+    }

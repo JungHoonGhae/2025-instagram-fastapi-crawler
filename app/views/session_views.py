@@ -74,12 +74,14 @@ def update_session(
 
 @router.delete("/sessions/{session_id}", response_model=dict)
 def delete_session(session_id: int, db: Session = Depends(get_db)):
-    session = (
-        db.query(InstagramSession).filter(InstagramSession.id == session_id).first()
-    )
-    if not session:
-        raise HTTPException(status_code=404, detail="Session not found")
+    try:
+        session = db.query(InstagramSession).filter(InstagramSession.id == session_id).first()
+        if not session:
+            raise HTTPException(status_code=404, detail="Session not found")
 
-    db.delete(session)
-    db.commit()
-    return {"detail": "Session deleted successfully"}
+        db.delete(session)
+        db.commit()
+        return {"detail": "Session deleted successfully"}
+    except Exception as e:
+        db.rollback() 
+        raise HTTPException(status_code=500, detail=str(e))

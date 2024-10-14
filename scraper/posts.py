@@ -47,16 +47,16 @@ def get_or_create_insta_post(db: Session, profile_username: str, session_obj):
 class InstagramDataFetcher:
     print("start fetch_instagram_data")
 
-    def __init__(self, db=db, proxy_ip="http://170.64.207.199", proxy_port="22"):
+    def __init__(self, db=db, proxy_ip="http://170.64.207.199", proxy_port="3128"):
         self.db = db
         self.session = self.session = get_best_session(self.db)
         if not self.session:
             raise ValueError("No available session found")
 
-        # self.set_proxy = f"{proxy_ip}:{proxy_port}"
+        self.set_proxy = f"{proxy_ip}:{proxy_port}"
 
         self.client = Client()
-        # self.client.set_proxy(proxy_ip)
+        self.client.set_proxy(self.set_proxy)
         self.client.set_settings(self.session.session_data)
         self.client.delay_range = [1, 50]
         self.logged_in = False

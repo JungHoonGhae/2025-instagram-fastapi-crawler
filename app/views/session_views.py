@@ -1,7 +1,7 @@
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
@@ -15,14 +15,28 @@ router = APIRouter()
 
 
 class LoginRequest(BaseModel):
-    username: str
-    password: str
+    username: str = Field(..., min_length=1)
+    password: str = Field(..., min_length=1)
+    
+    class Config:
+        json_encoders = {
+            str: lambda v: v.replace("(", "\\(").replace(")", "\\)")
+        }
 
 
 @router.post("/init-session/")
-async def initialize_session(data: LoginRequest, db: AsyncSession = Depends(get_db)):
+def initialize_session(data: LoginRequest, db: Session = Depends(get_db)):
     print("start initialize_session")
-    return await insta_create_session(data, db)
+    print(f"Received login request for username: {data.username}")
+    
+    try:
+        return insta_create_session(data, db)
+    except Exception as e:
+        print(f"Error details: {str(e)}")
+        raise HTTPException(
+            status_code=400,
+            detail=f"Login failed: {str(e)}"
+        )
 
 
 @router.get("/sessions/", response_model=List[InstagramSessionResponse])

@@ -1,140 +1,137 @@
-import asyncio
-import json
-
 from fastapi import HTTPException
 from instagrapi import Client
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.future import select
-
+from instagrapi.exceptions import LoginRequired
+from sqlalchemy.orm import Session
 from app.models import InstagramSession
+from pydantic import BaseModel, ConfigDict
 
-
-async def insta_create_session(data, db: AsyncSession):
-    # Create a new client instance
-    cl = Client()
-    proxy_ip="http://170.64.207.199"
-    proxy_port="3128"
-    set_proxy = f"{proxy_ip}:{proxy_port}"
+# Request 모델 추가
+class SessionRequest(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
     
-    cl.set_proxy(set_proxy)
+    username: str
+    password: str
 
-    try:
-        # Log in to the account using Executor to avoid blocking
-        await asyncio.get_event_loop().run_in_executor(
-            None, lambda: cl.login(data.username, data.password)
-        )
+class SessionResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    
+    status: str
+    message: str
+    username: str
 
-        # Retrieve the current session and save it
-        session_data = await asyncio.get_event_loop().run_in_executor(
-            None, cl.get_settings
-        )
+class InstagramSessionManager:
+    def __init__(self, username: str, password: str, db: Session):
+        self.username = username
+        self.password = password
+        self.db = db
+        self.client = Client()
+        
+        # 기본 설정
+        self.client.delay_range = [1, 3]
+        self.client.logger.setLevel('DEBUG')
+        self.client.set_locale('en_US')
+        self.client.set_timezone_offset(-14400)
+        self.client.set_country_code(1)
 
+    def init_session(self):
+        """Initialize or load Instagram session"""
         try:
-            # Convert session_data to JSON and then to a dictionary
-            session_data = json.loads(json.dumps(session_data))
+            # DB에서 기존 세션 확인
+            existing_session = (
+                self.db.query(InstagramSession)
+                .filter(InstagramSession.username == self.username)
+                .first()
+            )
+            
+            if existing_session:
+                print(f"Loading existing session for {self.username}")
+                # 세션 상태 확인
+                if existing_session.is_block:
+                    raise HTTPException(status_code=400, detail="Account is blocked")
+                if existing_session.is_challenge:
+                    raise HTTPException(status_code=400, detail="Challenge required")
+                if existing_session.is_temp_block:
+                    raise HTTPException(status_code=400, detail="Account is temporarily blocked")
+                
+                # 저장된 세션 데이터 로드
+                self.client.set_settings(existing_session.session_data)
+                try:
+                    self.client.get_timeline_feed()
+                    print("Session is valid")
+                except LoginRequired:
+                    print("Session is invalid, performing fresh login")
+                    self._perform_login()
+            else:
+                print("No existing session, performing fresh login")
+                self._perform_login()
+
+            # DB 업데이트
+            self._update_database()
+            
+            return {
+                "status": "success",
+                "message": "Session initialized successfully",
+                "username": self.username
+            }
+
         except Exception as e:
-            # Raise an HTTPException if serialization fails
+            print(f"Session initialization error: {str(e)}")
             raise HTTPException(
-                status_code=500, detail=f"Session data serialization failed: {str(e)}"
+                status_code=500,
+                detail={"status": "error", "message": str(e)}
             )
 
-        # Save settings to a JSON file
-        print("Session OK")
-
-        # Check if a profile already exists for the user
-        profile = (
-            db.query(InstagramSession)
-            .filter(InstagramSession.username == data.username)
-            .first()
-        )
-
-        if profile:
-            # Update the existing profile with the new session data
-            profile.password = data.password  # Update password if needed
-            profile.session_data = session_data
-            db.commit()
-            print(f"Profile {data.username} updated with new session data.")
-        else:
-            # Create a new profile entry in the database
-            new_profile = InstagramSession(
-                username=data.username,
-                password=data.password,
-                session_data=session_data,
-            )
-            db.add(new_profile)
-            db.commit()
-            db.refresh(new_profile)
-            profile = new_profile
-
-        return {
-            "profile": profile,
-            "status": "success",
-            "message": "Session created/updated and saved successfully!",
-            "session_data": session_data,
-        }
-
-    except Exception as e:
-        # Raise an HTTPException for any other errors
-        raise HTTPException(
-            status_code=400, detail={"status": "error", "message": str(e)}
-        )
-
-
-async def save_session(data, db: AsyncSession):
-    """
-    Saves or updates an Instagram session in the database.
-
-    Args:
-        data: An object containing the session data (username, password, session_data).
-        db: An asynchronous session instance for database operations.
-
-    Returns:
-        A dictionary with a success or error message along with the username.
-    """
-
-    # Prepare a SQL query to check if an InstagramSession with the provided username already exists.
-    stmt = select(InstagramSession).where(InstagramSession.username == data.username)
-    result = db.execute(stmt)  # Execute the query.
-    session = (
-        result.scalars().first()
-    )  # Fetch the first result as an InstagramSession object.
-
-    if session:  # If a session with the username already exists.
-
+    def _perform_login(self):
+        """Perform Instagram login"""
         try:
-            # Update the existing session's data.
-            session.session_data = data.session_data
-            db.add(session)  # Add the updated session to the database.
-            db.commit()  # Commit the changes to the database.
-            db.refresh(session)  # Refresh the session object with the new data.
-
-            # Return a success message along with the updated username.
-            return {
-                "message": "JSON data updated successfully",
-                "updated_data": data.username,
-            }
+            login_result = self.client.login(self.username, self.password)
+            
+            if not login_result:
+                raise HTTPException(status_code=400, detail="Login failed")
+            
+            print("Login successful")
+            return login_result
+            
         except Exception as e:
-            # If there is an exception, return an error message and the username.
-            return {"message": str(e), "username": data.username}
+            print(f"Login error: {str(e)}")
+            raise
 
-    else:  # If no session with the username exists.
-
+    def _update_database(self):
+        """Update or create database record"""
         try:
-            # Create a new Instagram session with the provided data.
-            new_session = InstagramSession(
-                username=data.username,
-                password=data.password,
-                session_data=data.session_data,
+            existing_session = (
+                self.db.query(InstagramSession)
+                .filter(InstagramSession.username == self.username)
+                .first()
             )
-            db.add(new_session)  # Add the new session to the database.
-            db.commit()  # Commit the new session to the database.
-            db.refresh(new_session)  # Refresh the session object with the new data.
-
-            # Return a success message along with the new session's username.
-            return {
-                "message": "User created and JSON data added successfully",
-                "username": new_session.username,
-            }
+            
+            session_data = self.client.get_settings()
+            
+            if existing_session:
+                existing_session.password = self.password
+                existing_session.session_data = session_data
+                existing_session.is_block = False
+                existing_session.is_challenge = False
+                existing_session.is_temp_block = False
+            else:
+                new_session = InstagramSession(
+                    username=self.username,
+                    password=self.password,
+                    session_data=session_data,
+                    is_block=False,
+                    is_challenge=False,
+                    is_temp_block=False,
+                    number_of_use=0
+                )
+                self.db.add(new_session)
+            
+            self.db.commit()
+            
         except Exception as e:
-            # If there is an exception, return an error message and the username.
-            return {"message": str(e), "username": data.username}
+            self.db.rollback()
+            raise
+
+def insta_create_session(data: SessionRequest, db: Session) -> SessionResponse:
+    """FastAPI endpoint handler"""
+    session_manager = InstagramSessionManager(data.username, data.password, db)
+    return session_manager.init_session()

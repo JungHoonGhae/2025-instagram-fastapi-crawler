@@ -1,4 +1,4 @@
-# Instagram Crawler FastAPI
+# 2025-instagram-fastapi-crawler
 
 A powerful and efficient Instagram hashtag crawler built with FastAPI and Instagrapi. This API service allows you to fetch recent posts and information for multiple hashtags simultaneously.
 
@@ -26,8 +26,8 @@ A powerful and efficient Instagram hashtag crawler built with FastAPI and Instag
 ### 2. Installation
 ```bash
 # Clone repository
-git clone https://github.com/yourusername/instagram_crawler_FastAPI.git
-cd instagram_crawler_FastAPI
+git clone https://github.com/JungHoonGhae/2025-instagram-fastapi-crawler.git
+cd 2025-instagram-fastapi-crawler
 
 # Create and activate virtual environment
 python -m venv venv

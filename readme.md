@@ -26,8 +26,8 @@ A powerful and efficient Instagram hashtag crawler built with FastAPI and Instag
 ### 2. Installation
 ```bash
 # Clone repository
-git clone https://github.com/JungHoonGhae/2025-instagram-fastapi-crawler.git
-cd 2025-instagram-fastapi-crawler
+git clone https://github.com/JungHoonGhae/instagram-fastapi-crawler.git
+cd instagram-fastapi-crawler
 
 # Create and activate virtual environment
 python -m venv venv
